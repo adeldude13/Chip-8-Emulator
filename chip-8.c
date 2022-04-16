@@ -1,6 +1,8 @@
 #include "chip-8.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
 
 Chip8 chip;
 
@@ -8,6 +10,11 @@ Chip8 chip;
 #define FONT_SIZE 80
 #define FONT_START 0x50
 #define FONT_END 0x0A0
+
+
+uint8_t randomB() {
+	return rand() % 255;
+}
 
 
 
@@ -177,6 +184,48 @@ void SHRX() {
 	chip.regs[0xF] = (chip.regs[vx] & 0x1);
 
 	chip.regs[vx] >>= 1;
+}
+
+
+
+void SUBNXY() {
+	uint16_t vx = getVX();
+	uint16_t vy = getVY();
+
+	chip.regs[0xF] = chip.regs[vy] > chip.regs[vx];
+	chip.regs[vx] = chip.regs[vy] - chip.regs[vx];
+}
+
+
+void SHLX() {
+	uint16_t vx = getVX();
+	chip.regs[0xF] = (chip.regs[vx] & 1u);
+	chip.regs[vx] <<= 1;
+}
+
+void SNEXY() {
+	uint16_t vx = getVX();
+	uint16_t vy = getVY();
+
+	if(chip.regs[vx] == chip.regs[vy]) {
+		chip.pc += 2;
+	}
+}
+
+void LDIA() {
+	uint16_t nnn = getAdress();
+
+	chip.index = nnn;
+}
+
+void JPVA() {
+	uint16_t nnn = getAdress() + chip.regs[0x0];
+	chip.pc = nnn;
+}
+
+
+void RNDXB() {
+	chip.regs[getVX()] = randomB() & getByte();
 }
 
 
