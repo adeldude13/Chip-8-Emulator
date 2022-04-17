@@ -4,7 +4,8 @@
 #include <inttypes.h>
 
 #define VIDEO_SIZE 64*32
-
+#define VIDEO_WIDTH 64
+#define VIDEO_HEIGHT 32
 
 typedef struct {
 	uint8_t regs[16];
@@ -15,8 +16,8 @@ typedef struct {
 	uint8_t sp;
 	uint8_t timer;
 	uint8_t soundTimer;
-	uint8_t keys;
-	uint32_t video[VIDEO_SIZE];
+	uint8_t keys[16];
+	uint32_t video[VIDEO_HEIGHT*VIDEO_WIDTH];
 	uint16_t opcode;
 } Chip8;
 

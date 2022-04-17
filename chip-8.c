@@ -18,7 +18,7 @@ uint8_t randomB() {
 
 
 
-uint8_t fontset[FONT_SIZE] =
+uint8_t fontset[] =
 {
 	0xF0, 0x90, 0x90, 0x90, 0xF0,
 	0x20, 0x60, 0x20, 0x20, 0x70,
@@ -227,6 +227,99 @@ void JPVA() {
 void RNDXB() {
 	chip.regs[getVX()] = randomB() & getByte();
 }
+
+
+void DRWXYN() {
+	uint8_t Vx = getVX();
+	uint8_t Vy = getVY();
+	uint8_t height = getByte();
+	// Wrap if going beyond screen boundaries
+	uint8_t xPos = chip.regs[Vx] % VIDEO_WIDTH;
+	uint8_t yPos = chip.regs[Vy] % VIDEO_HEIGHT;
+
+	chip.regs[0xF] = 0;
+
+	for (unsigned int row = 0; row < height; ++row)
+	{
+		uint8_t spriteByte = chip.memory[chip.index + row];
+
+		for (unsigned int col = 0; col < 8; ++col)
+		{
+			uint8_t spritePixel = spriteByte & (0x80u >> col);
+			uint32_t* screenPixel = &chip.video[(yPos + row) * VIDEO_WIDTH + (xPos + col)];
+
+			// Sprite pixel is on
+			if (spritePixel)
+			{
+				// Screen pixel also on - collision
+				if (*screenPixel == 0xFFFFFFFF)
+				{
+					chip.regs[0xF] = 1;
+				}
+
+				// Effectively XOR with the sprite pixel
+				*screenPixel ^= 0xFFFFFFFF;
+			}
+		}
+	}
+
+
+}
+
+
+void SKPX() {
+	if(chip.keys[chip.regs[getVX()]]) {
+		chip.pc+=2;
+	}
+}
+
+
+void SKNPX() {
+	if(!chip.keys[chip.regs[getVX()]]) {
+		chip.pc+=2;
+	}
+}
+
+
+void LDXT() {
+	chip.regs[getVX()] = chip.timer;
+}
+
+void LDXK() {
+	int isDone = 0;
+	for(int i=0; i<16; i++) {
+		if(chip.regs[i]) {
+			chip.regs[getVX()] = i;
+			isDone = 1;	
+		}
+	}
+	if(!isDone) {		
+		chip.pc -= 2;
+	}
+}
+
+void LDTX() {
+	chip.timer = chip.regs[getVX()];
+}
+
+
+void LDSX() {
+	chip.soundTimer = chip.regs[getVX()];
+}
+
+void ADDIX() {
+	chip.index = chip.index + chip.regs[getVX()];
+}
+
+void LDFX() {
+	uint16_t Vx = getVX();
+	uint8_t digit = chip.regs[Vx];
+
+	chip.index = FONT_START + (5 * digit);
+}
+
+
+
 
 
 void loadRomToMemory(char *file) {
