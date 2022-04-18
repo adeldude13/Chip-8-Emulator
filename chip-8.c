@@ -10,6 +10,7 @@ Chip8 chip;
 #define FONT_SIZE 80
 #define FONT_START 0x50
 #define FONT_END 0x0A0
+#define MEM_END 0xFFF
 
 
 uint8_t randomB() {
@@ -125,6 +126,16 @@ void LDXB() {
 
 	chip.regs[vx] = chip.regs[vy];
 }
+
+
+void ADDXB() {
+	chip.regs[getVX()] += chip.regs[getByte()];
+}
+
+void LDXY() {
+	chip.regs[getVX()] = chip.regs[getVY()];
+}
+
 
 void ORXY() {
 	uint16_t vx = getVX();
@@ -319,6 +330,162 @@ void LDFX() {
 }
 
 
+void LDBX() {
+	uint16_t val = chip.regs[getVX()];
+
+	chip.memory[chip.index + 2] = val % 10;
+	val /= 10;
+	chip.memory[chip.index + 1] = val % 10;
+	val /=10;
+	chip.memory[chip.index] = val % 10;
+}
+
+void LDIX() {
+	uint16_t n = getVX();
+	for(int i=0; i<=n; i++) {
+		chip.memory[chip.index + i] = chip.regs[i];
+	}
+}
+
+
+void LDXI() {
+	uint8_t Vx = (chip.opcode & 0x0F00u) >> 8u;
+	for (uint8_t i = 0; i <= Vx; ++i)
+	{
+		chip.regs[i] = chip.memory[chip.index + i];
+	}
+}
+
+
+
+void Eval(uint16_t code) {
+	int isCalled = 1;	
+	switch((code & 0xF000u) >> 12u) {
+		case 1:
+			JP();
+			break;
+		case 2:
+			CALL();
+			break;
+		case 3:
+			SEXB();
+			break;
+		case 4:
+			SNEXB();
+			break;
+		case 5:
+			SEXY();
+			break;
+		case 6:
+			LDXB();
+			break;
+		case 7:
+			ADDXB();
+			break;
+		case 0xA:
+			LDIA();
+			break;
+		case 0xB:
+			JPVA();
+			break;
+		case 0xC:
+			RNDXB();
+			break;
+		case 0xD:
+			DRWXYN();
+			break;
+		
+
+		case 0: {
+				if((code & 0x000F) == 0) {
+						CLS(); break;
+				} else {
+						RET(); break;					
+				}
+				break;
+		}
+		
+
+
+		case 8: {
+			switch(code & 0x000F) {
+				case 0:
+					LDXY();
+					break;
+				case 1:
+					ORXY();
+				case 2:
+					ANDXY();
+				case 3:
+					XORXY();
+					break;
+				case 4:
+					ADDXY();
+					break;
+				case 5:
+					SUBXY();
+					break;
+				case 6:
+					SHRX();
+					break;
+				case 7:
+					SUBNXY();
+					break;
+				case 0xE:
+					SHLX();
+					break;
+			}
+			break;
+		}
+		case 0xE: {
+			switch(code & 0x000F) {
+				case 0xE:
+					SKPX();
+					break;
+				case 1:
+					SKNPX();
+					break;
+			}
+			break;
+		}
+
+		case 0xF: {
+			switch(code & 0x00FF) {
+				case 0x07:
+					LDXT();
+					break;
+				case 0x0A:
+					LDXK();
+					break;
+				case 0x15:
+					LDTX();
+					break;
+				case 0x18:
+					LDSX();
+					break;
+				case 0x1E:
+					ADDIX();
+					break;
+				case 0x29:
+					LDFX();
+					break;
+				case 0x33:
+					LDBX();
+					break;
+				case 0x55:
+					LDIX();
+					break;
+				case 0x65:
+					LDXI();
+					break;
+			}
+			break;
+		}
+		default:
+			printf("Unknown Instruction");
+			break;
+	}
+}
 
 
 
@@ -348,9 +515,25 @@ void loadRomToMemory(char *file) {
 }
 
 
+uint16_t fetch() {
+	return (chip.memory[chip.pc] << 8) | (chip.memory[chip.pc+1]);
+}
+
+
+
 
 void initChip(char *file) {
 	chip.pc = MEM_START;	
 	loadRomToMemory(file);
+	while(chip.pc < MEM_END) {
+		decodeAndExe(fetch());
+		chip.pc+=2;
+		if(chip.timer > 0) {
+			chip.timer--;
+		}
+		if(chip.soundTimer > 0) {
+			chip.soundTimer--;
+		}
+	}
 	return;
 }
