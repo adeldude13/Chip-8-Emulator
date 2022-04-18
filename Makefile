@@ -1,2 +1,13 @@
-main: main.c chip-8.c
-	clang -g3 -o main main.c chip-8.c
+CC := clang
+
+out := main
+
+
+Args := -ggdb3 -O0 -o $(out)
+
+Files := main.c chip-8.c
+
+
+
+main: $(Files)
+	$(CC) $(Args) $(Files)

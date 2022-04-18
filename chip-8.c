@@ -358,7 +358,7 @@ void LDXI() {
 
 
 
-void Eval(uint16_t code) {
+void decodeAndExe(uint16_t code) {
 	int isCalled = 1;	
 	switch((code & 0xF000u) >> 12u) {
 		case 1:
