@@ -22,7 +22,7 @@ typedef struct {
 } Chip8;
 
 void loadRomToMemory(char *file);
-void initChip(char *file);
+void initChip(char *file, int d, int s);
 
 
 #endif

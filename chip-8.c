@@ -1,4 +1,5 @@
 #include "chip-8.h"
+#include "graphics.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -359,7 +360,6 @@ void LDXI() {
 
 
 void decodeAndExe(uint16_t code) {
-	int isCalled = 1;	
 	switch((code & 0xF000u) >> 12u) {
 		case 1:
 			JP();
@@ -402,9 +402,8 @@ void decodeAndExe(uint16_t code) {
 				} else {
 						RET(); break;					
 				}
-				break;
 		}
-		
+		break;	
 
 
 		case 8: {
@@ -446,9 +445,8 @@ void decodeAndExe(uint16_t code) {
 					SKNPX();
 					break;
 			}
-			break;
 		}
-
+		break;
 		case 0xF: {
 			switch(code & 0x00FF) {
 				case 0x07:
@@ -485,6 +483,14 @@ void decodeAndExe(uint16_t code) {
 			printf("Unknown Instruction");
 			break;
 	}
+		chip.pc+=2;
+		if(chip.timer > 0) {
+			chip.timer--;
+		}
+		if(chip.soundTimer > 0) {
+			chip.soundTimer--;
+		}
+
 }
 
 
@@ -520,20 +526,10 @@ uint16_t fetch() {
 }
 
 
-
-
-void initChip(char *file) {
+void initChip(char *file, int scale, int delay) {
 	chip.pc = MEM_START;	
-	loadRomToMemory(file);
-	while(chip.pc < MEM_END) {
-		decodeAndExe(fetch());
-		chip.pc+=2;
-		if(chip.timer > 0) {
-			chip.timer--;
-		}
-		if(chip.soundTimer > 0) {
-			chip.soundTimer--;
-		}
+	if(!initGraphics("Chip-8 Emu", VIDEO_WIDTH * scale, VIDEO_HEIGHT * scale, VIDEO_WIDTH, VIDEO_HEIGHT)) {
+		exit(0);	
 	}
 	return;
 }

@@ -3,9 +3,9 @@ CC := clang
 out := main
 
 
-Args := -ggdb3 -O0 -o $(out)
+Args := `sdl2-config --libs --cflags` -ggdb3 -O0 --std=c99 -Wall -lSDL2_image -lm -o $(out)
 
-Files := main.c chip-8.c
+Files := main.c chip-8.c graphics.c
 
 
 
