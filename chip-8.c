@@ -72,9 +72,7 @@ void CLS() {
 
 
 void RET() {
-	chip.sp--;
-	chip.pc = chip.stack[chip.sp];
-	return;
+	chip.pc = chip.stack[chip.sp--] + 0x200;
 }
 
 
@@ -86,7 +84,8 @@ void JP() {
 
 void CALL() {
 	uint16_t addr = getAdress();
-	chip.stack[chip.sp++] = chip.pc;
+	chip.sp+=1;
+	chip.stack[chip.sp] = chip.pc;
 	chip.pc = addr;
 }
 
@@ -123,14 +122,14 @@ void SEXY() {
 
 void LDXB() {
 	uint16_t vx = getVX();
-	uint16_t vy = getVY();
+	uint16_t byte = getByte();
 
-	chip.regs[vx] = chip.regs[vy];
+	chip.regs[vx] = byte;
 }
 
 
 void ADDXB() {
-	chip.regs[getVX()] += chip.regs[getByte()];
+	chip.regs[getVX()] += getByte();
 }
 
 void LDXY() {
@@ -168,14 +167,13 @@ void ADDXY() {
 	uint16_t vx = getVX();
 	uint16_t vy = getVY();
 
-	int val = chip.regs[vx] + chip.regs[vy];
+	uint16_t val = chip.regs[vx] + chip.regs[vy];
 	if(val > 255) {
-		chip.regs[vx] = 255;
 		chip.regs[0xF] = 1;
-		return;
+	} else {
+		chip.regs[0xF] = 0;
 	}
-	chip.regs[vx] = val;
-	chip.regs[0xF] = 0;
+	chip.regs[vx] = val & 0xFFu;
 }
 
 
@@ -219,14 +217,13 @@ void SNEXY() {
 	uint16_t vx = getVX();
 	uint16_t vy = getVY();
 
-	if(chip.regs[vx] == chip.regs[vy]) {
+	if(chip.regs[vx] != chip.regs[vy]) {
 		chip.pc += 2;
 	}
 }
 
 void LDIA() {
 	uint16_t nnn = getAdress();
-
 	chip.index = nnn;
 }
 
@@ -302,7 +299,8 @@ void LDXK() {
 	for(int i=0; i<16; i++) {
 		if(chip.regs[i]) {
 			chip.regs[getVX()] = i;
-			isDone = 1;	
+			isDone = 1;
+			break;
 		}
 	}
 	if(!isDone) {		
@@ -325,7 +323,7 @@ void ADDIX() {
 
 void LDFX() {
 	uint16_t Vx = getVX();
-	uint8_t digit = chip.regs[Vx];
+	uint16_t digit = chip.regs[Vx];
 
 	chip.index = FONT_START + (5 * digit);
 }
@@ -383,6 +381,9 @@ void decodeAndExe(uint16_t code) {
 		case 7:
 			ADDXB();
 			break;
+		case 9:
+			SNEXY();
+			break;
 		case 0xA:
 			LDIA();
 			break;
@@ -398,14 +399,14 @@ void decodeAndExe(uint16_t code) {
 		
 
 		case 0: {
+				printf("Leading Zero %i\n", chip.pc);
 				if((code & 0x000F) == 0) {
-						CLS(); break;
-				} else {
-						RET(); break;					
+						CLS();
+				} else if((code & 0x000F) == 0xE)	{
+						RET(); 
 				}
 		}
 		break;	
-
 
 		case 8: {
 			switch(code & 0x000F) {
@@ -438,7 +439,6 @@ void decodeAndExe(uint16_t code) {
 		}
 		break;
 		case 0xE: {
-			printf("lasdf");
 			switch(code & 0x000F) {
 				case 0xE:
 					SKPX();
@@ -525,27 +525,36 @@ void initChip(char *file, int scale, int delay) {
 	chip.pc = MEM_START;	
 	int pitch = sizeof(chip.video[0]) * VIDEO_WIDTH;
 	
-	if(!initGraphics("Chip-8 Emu", VIDEO_WIDTH * scale, VIDEO_HEIGHT * scale, VIDEO_WIDTH, VIDEO_HEIGHT)) {
+	 if(!initGraphics("Chip-8 Emu", VIDEO_WIDTH * scale, VIDEO_HEIGHT * scale, VIDEO_WIDTH, VIDEO_HEIGHT)) {
 		exit(0);	
-	}
-	
+	} 
 	int EXIT = 0;
 	loadRomToMemory(file);
+		
 	while(!EXIT) {
-		EXIT = input(chip.keys);	
+		EXIT = input(chip.keys);
 		chip.opcode = fetch();
 		chip.pc += 2;	
-		sleep(1);
+		
 		decodeAndExe(chip.opcode);
-				
+
+
+		long long int useless;	
+		
+		for(int i=0; i<=delay; i++) {
+			do {
+				useless++;
+			} while(0);
+		}
+		
 		if(chip.timer > 0) {
 			chip.timer--;
-		} 
-		
+		}
+		chip.timer = 255;
 		if(chip.soundTimer > 0) {
 			chip.soundTimer--;	
 		}
-
+			
 		SDL_UPDATE(chip.video, pitch); 
 	}
 	return;
