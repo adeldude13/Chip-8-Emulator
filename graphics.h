@@ -6,7 +6,7 @@
 // returns 1 on success;
 int initGraphics(char *title, int width, int height, int tWidth, int tHeight);
 
-int input(uint8_t keys[]);
+int input(uint8_t *keys);
 
 void SDL_UPDATE();
 

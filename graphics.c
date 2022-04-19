@@ -13,7 +13,7 @@ void SDL_UPDATE(void *buffer, int p) {
 	SDL_RenderPresent(rend);
 }
 
-int input(uint8_t keys[]) {
+int input(uint8_t *keys) {
 	int EXIT = 0;
 
 	SDL_Event event;

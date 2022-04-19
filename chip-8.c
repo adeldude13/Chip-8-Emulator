@@ -3,16 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
+#include <time.h>
+#include <unistd.h>
 
 Chip8 chip;
-
+struct tm *timeinfo;
 #define MEM_START 0x200
 #define FONT_SIZE 80
 #define FONT_START 0x50
 #define FONT_END 0x0A0
 #define MEM_END 0xFFF
-
 
 uint8_t randomB() {
 	return rand() % 255;
@@ -242,9 +242,9 @@ void RNDXB() {
 
 
 void DRWXYN() {
-	uint8_t Vx = getVX();
-	uint8_t Vy = getVY();
-	uint8_t height = getByte();
+	uint8_t Vx = (chip.opcode & 0x0F00u) >> 8;
+	uint8_t Vy = (chip.opcode & 0x00F0u) >> 4;
+	uint8_t height = chip.opcode & 0x000F;
 	// Wrap if going beyond screen boundaries
 	uint8_t xPos = chip.regs[Vx] % VIDEO_WIDTH;
 	uint8_t yPos = chip.regs[Vy] % VIDEO_HEIGHT;
@@ -361,6 +361,7 @@ void LDXI() {
 
 void decodeAndExe(uint16_t code) {
 	switch((code & 0xF000u) >> 12u) {
+		
 		case 1:
 			JP();
 			break;
@@ -434,9 +435,10 @@ void decodeAndExe(uint16_t code) {
 					SHLX();
 					break;
 			}
-			break;
 		}
+		break;
 		case 0xE: {
+			printf("lasdf");
 			switch(code & 0x000F) {
 				case 0xE:
 					SKPX();
@@ -483,14 +485,6 @@ void decodeAndExe(uint16_t code) {
 			printf("Unknown Instruction");
 			break;
 	}
-		chip.pc+=2;
-		if(chip.timer > 0) {
-			chip.timer--;
-		}
-		if(chip.soundTimer > 0) {
-			chip.soundTimer--;
-		}
-
 }
 
 
@@ -526,10 +520,33 @@ uint16_t fetch() {
 }
 
 
+
 void initChip(char *file, int scale, int delay) {
 	chip.pc = MEM_START;	
+	int pitch = sizeof(chip.video[0]) * VIDEO_WIDTH;
+	
 	if(!initGraphics("Chip-8 Emu", VIDEO_WIDTH * scale, VIDEO_HEIGHT * scale, VIDEO_WIDTH, VIDEO_HEIGHT)) {
 		exit(0);	
+	}
+	
+	int EXIT = 0;
+	loadRomToMemory(file);
+	while(!EXIT) {
+		EXIT = input(chip.keys);	
+		chip.opcode = fetch();
+		chip.pc += 2;	
+		sleep(1);
+		decodeAndExe(chip.opcode);
+				
+		if(chip.timer > 0) {
+			chip.timer--;
+		} 
+		
+		if(chip.soundTimer > 0) {
+			chip.soundTimer--;	
+		}
+
+		SDL_UPDATE(chip.video, pitch); 
 	}
 	return;
 }

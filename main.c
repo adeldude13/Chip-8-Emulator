@@ -17,7 +17,6 @@ int toInt(char *number, size_t length) {
 
 
 int main(int argc, char **argv) {
-		
 	if(argc != 4) {
 		printf("Usage: %s <Scale> <Delay> <ROM>", argv[0]);
 		exit(0);
