@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 #include <unistd.h>
+
+void usleep(int num);
 
 Chip8 chip;
 struct tm *timeinfo;
@@ -42,7 +43,7 @@ uint8_t fontset[] =
 
 
 uint16_t getAdress() {
-	return chip.opcode & 0x0FFFu;
+	return chip.opcode & 0x0FFF;
 }
 
 uint16_t getByte() {
@@ -72,7 +73,7 @@ void CLS() {
 
 
 void RET() {
-	chip.pc = chip.stack[chip.sp--] + 0x200;
+	chip.pc = chip.stack[(chip.sp--)];
 }
 
 
@@ -84,8 +85,9 @@ void JP() {
 
 void CALL() {
 	uint16_t addr = getAdress();
-	chip.sp+=1;
+	chip.sp++;	
 	chip.stack[chip.sp] = chip.pc;
+	
 	chip.pc = addr;
 }
 
@@ -234,7 +236,7 @@ void JPVA() {
 
 
 void RNDXB() {
-	chip.regs[getVX()] = randomB() & getByte();
+	chip.regs[getVX()] = rand() & getByte();
 }
 
 
@@ -271,8 +273,6 @@ void DRWXYN() {
 			}
 		}
 	}
-
-
 }
 
 
@@ -399,7 +399,6 @@ void decodeAndExe(uint16_t code) {
 		
 
 		case 0: {
-				printf("Leading Zero %i\n", chip.pc);
 				if((code & 0x000F) == 0) {
 						CLS();
 				} else if((code & 0x000F) == 0xE)	{
@@ -415,8 +414,10 @@ void decodeAndExe(uint16_t code) {
 					break;
 				case 1:
 					ORXY();
+					break;
 				case 2:
 					ANDXY();
+					break;
 				case 3:
 					XORXY();
 					break;
@@ -521,41 +522,38 @@ uint16_t fetch() {
 
 
 
-void initChip(char *file, int scale, int delay) {
+void initChip(char *file, int scale) {
 	chip.pc = MEM_START;	
 	int pitch = sizeof(chip.video[0]) * VIDEO_WIDTH;
 	
 	 if(!initGraphics("Chip-8 Emu", VIDEO_WIDTH * scale, VIDEO_HEIGHT * scale, VIDEO_WIDTH, VIDEO_HEIGHT)) {
 		exit(0);	
 	} 
+	
 	int EXIT = 0;
 	loadRomToMemory(file);
-		
+	
 	while(!EXIT) {
 		EXIT = input(chip.keys);
 		chip.opcode = fetch();
-		chip.pc += 2;	
+		chip.pc += 2;
+		
+		
 		
 		decodeAndExe(chip.opcode);
-
-
-		long long int useless;	
 		
-		for(int i=0; i<=delay; i++) {
-			do {
-				useless++;
-			} while(0);
-		}
-		
+		usleep(5000);	
+
 		if(chip.timer > 0) {
 			chip.timer--;
 		}
-		chip.timer = 255;
+		
 		if(chip.soundTimer > 0) {
 			chip.soundTimer--;	
 		}
 			
 		SDL_UPDATE(chip.video, pitch); 
 	}
+	SDL_EXIT();
 	return;
 }

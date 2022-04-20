@@ -12,7 +12,7 @@ typedef struct {
 	uint8_t memory[4096];
 	uint16_t index;
 	uint16_t pc;
-	uint8_t stack[16];
+	uint16_t stack[16];
 	uint8_t sp;
 	uint8_t timer;
 	uint8_t soundTimer;
@@ -22,7 +22,7 @@ typedef struct {
 } Chip8;
 
 void loadRomToMemory(char *file);
-void initChip(char *file, int d, int s);
+void initChip(char *file, int scale);
 
 
 #endif

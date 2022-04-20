@@ -6,7 +6,7 @@
 		* 0x200-0xFFF (512-4095) :- ROMS Instructions.
 	- 16Bit Reg: memory Adress for the currently used Operation.
 	- 16Bit Program Counter(AKA PC) : keeping track for the next Operation.
-	- 16 Levels Stack: used For calling function.
+	- 16bit 16 Levels Stack: used For calling function.
 	- 8Bit Stack Pointer: keeping Track for the Current function in the Top of the Stack.
 	- 8Bit Delay Timer(decremented at 60HZ).
 	- 8Bit Sound Timer: Beebing while its non-zero

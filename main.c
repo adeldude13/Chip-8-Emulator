@@ -1,5 +1,6 @@
 #include "chip-8.h"
 #include <stdio.h>
+
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
@@ -17,13 +18,12 @@ int toInt(char *number, size_t length) {
 
 
 int main(int argc, char **argv) {
-	if(argc != 4) {
-		printf("Usage: %s <Scale> <Delay> <ROM>", argv[0]);
+	if(argc != 3) {
+		printf("Usage: %s <Scale> <ROM>", argv[0]);
 		exit(0);
 	}
 	int scale = toInt(argv[1], strlen(argv[1]));
-	int delay = toInt(argv[2], strlen(argv[2]));
-	char *file = argv[3];
-	initChip(file, scale, delay);	
+	char *file = argv[2];
+	initChip(file, scale);	
 	return 0;
 }
