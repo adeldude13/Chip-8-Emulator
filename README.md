@@ -1,5 +1,5 @@
 # CHIP-8-Emulator
-A CHIP-8 emulator in C++
+A CHIP-8 emulator in C
 
 ![Air Plane](Pics/airPlane.png)
 
