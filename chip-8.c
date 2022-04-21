@@ -5,7 +5,6 @@
 #include <math.h>
 #include <SDL2/SDL.h>
 
-void usleep(int num);
 
 Chip8 chip;
 struct tm *timeinfo;
