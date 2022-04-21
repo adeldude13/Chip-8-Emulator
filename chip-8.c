@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <unistd.h>
+#include <SDL2/SDL.h>
 
 void usleep(int num);
 
@@ -542,7 +542,7 @@ void initChip(char *file, int scale) {
 		
 		decodeAndExe(chip.opcode);
 		
-		usleep(5000);	
+		SDL_Delay(5);
 
 		if(chip.timer > 0) {
 			chip.timer--;
