@@ -13,7 +13,7 @@ A CHIP-8 emulator in C
 ```bash
 $ make main
 ```
-* to run from the src file you can:
+* to run from the directory file you can:
 ```bash
 $ make run scale={scale} rom={../ROMS/romfile or any rom file you want}
 ```
